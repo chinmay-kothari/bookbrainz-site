@@ -33,9 +33,7 @@ import LicensingPage from '../../client/components/pages/licensing';
 import PrivacyPage from '../../client/components/pages/privacy';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import _ from 'lodash';
 import express from 'express';
-import log from 'log';
 import target from '../templates/target';
 
 

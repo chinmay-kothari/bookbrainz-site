@@ -846,7 +846,7 @@ async function saveEntitiesAndFinishRevision(
 		editorUpdatePromise,
 		parentsAddedPromise,
 		notePromise
-	]).catch(error => { throw error; });
+	]).catch(err => { throw err; });
 
 	return mainEntity;
 }
@@ -962,9 +962,9 @@ export function handleCreateOrEditEntity(
 
 			return refreshedEntity.toJSON();
 		}
-		catch (error) {
-			log.error(error);
-			throw error;
+		catch (err) {
+			log.error(err);
+			throw err;
 		}
 	});
 
@@ -978,7 +978,7 @@ export function handleCreateOrEditEntity(
 				}
 				return entityJSON;
 			})
-			.catch(error => { throw error; })
+			.catch(err => { throw err; })
 	);
 
 	return handler.sendPromiseResult(
