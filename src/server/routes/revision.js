@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015-2016  Ben Ockmore
  *               2016       Sean Burke
+ *               2019       Nicolas Pelletier
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -171,6 +172,11 @@ function diffRevisionsWithParents(entityRevisions) {
 						changes: revision.diff(parent),
 						entity: revision.related('entity'),
 						revision
+					}),
+					// If calling .parent() is rejected (no parent rev), we still want to go ahead without the parent
+					() => Promise.props({
+						changes: revision.diff(null),
+						entity: revision.related('entity')
 					})
 				)
 	));
@@ -183,7 +189,7 @@ router.get('/:id', async (req, res, next) => {
 	} = req.app.locals.orm;
 
 	let revision;
-	function _createRevision(EntityRevisionModel) {
+	function _createEntityRevision(EntityRevisionModel) {
 		/**
 		 * EntityRevisions can have duplicate ids
 		 * the 'merge' and 'remove' options instructs the ORM to consider that normal instead of merging
@@ -195,6 +201,7 @@ router.get('/:id', async (req, res, next) => {
 			.then(diffRevisionsWithParents)
 			.catch(err => { log.error(err); throw err; });
 	}
+
 	try {
 		/*
 		* Here, we need to get the Revision, then get all <Entity>Revision
@@ -212,11 +219,11 @@ router.get('/:id', async (req, res, next) => {
 				throw new error.NotFoundError(`Revision #${req.params.id} not found`, req);
 			});
 
-		const authorDiffs = await _createRevision(AuthorRevision);
-		const editionDiffs = await _createRevision(EditionRevision);
-		const editionGroupDiffs = await _createRevision(EditionGroupRevision);
-		const publisherDiffs = await _createRevision(PublisherRevision);
-		const workDiffs = await _createRevision(WorkRevision);
+		const authorDiffs = await _createEntityRevision(AuthorRevision);
+		const editionDiffs = await _createEntityRevision(EditionRevision);
+		const editionGroupDiffs = await _createEntityRevision(EditionGroupRevision);
+		const publisherDiffs = await _createEntityRevision(PublisherRevision);
+		const workDiffs = await _createEntityRevision(WorkRevision);
 		const diffs = _.concat(
 			entityFormatter.formatEntityDiffs(
 				authorDiffs,

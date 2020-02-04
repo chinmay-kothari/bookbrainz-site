@@ -101,7 +101,7 @@ router.get(
 			markup,
 			props: escapeProps(props),
 			script: '/js/entity-editor.js',
-			title: 'Add Author'
+			title: props.heading
 		}));
 	}
 );
@@ -199,7 +199,7 @@ router.get(
 			markup,
 			props: escapeProps(props),
 			script: '/js/entity-editor.js',
-			title: 'Edit Author'
+			title: props.heading
 		}));
 	}
 );

@@ -85,8 +85,8 @@ export function generateEntityProps(
 		action,
 		entityType,
 		heading: isEdit ?
-			`Edit ${entityName}` :
-			`Create ${entityName}`,
+			`Edit ${entity.defaultAlias.name} (${entityName})` :
+			`Add ${entityName}`,
 		identifierTypes: filteredIdentifierTypes,
 		initialState: initialStateCallback(entity),
 		languageOptions: res.locals.languages,
@@ -360,6 +360,9 @@ export function ISODateStringToObject(value: string) {
  * @returns {string} ISO 8601-2004 string (±YYYYYY-MM-DD)
  */
 export function dateObjectToISOString(value) {
+	if (value.month === '' && value.day === '' && value.year === '') {
+		return null;
+	}
 	const isCommonEraDate = Math.sign(value.year) > -1;
 	// Convert to ISO 8601:2004 extended for BCE years (±YYYYYY)
 	let date = `${isCommonEraDate ? '+' : '-'}${_.padStart(Math.abs(value.year).toString(), 6, '0')}`;
@@ -369,5 +372,6 @@ export function dateObjectToISOString(value) {
 			date += `-${value.day}`;
 	  }
 	}
+
 	return date;
 }

@@ -104,15 +104,15 @@ router.get(
 		if (req.query.author) {
 			propsPromise.author =
 				Author.forge({bbid: req.query.author})
-					.fetch({withRelated: 'defaultAlias'})
-					.then((data) => utils.entityToOption(data.toJSON()));
+					.fetch({require: false, withRelated: 'defaultAlias'})
+					.then((data) => data && utils.entityToOption(data.toJSON()));
 		}
 
 		if (req.query.edition) {
 			propsPromise.edition =
 				Edition.forge({bbid: req.query.edition})
-					.fetch({withRelated: 'defaultAlias'})
-					.then((data) => utils.entityToOption(data.toJSON()));
+					.fetch({require: false, withRelated: 'defaultAlias'})
+					.then((data) => data && utils.entityToOption(data.toJSON()));
 		}
 
 		function render(props) {
@@ -136,7 +136,7 @@ router.get(
 				markup,
 				props: escapeProps(updatedProps),
 				script: '/js/entity-editor.js',
-				title: 'Add Work'
+				title: props.heading
 			}));
 		}
 		Promise.props(propsPromise)
@@ -236,7 +236,7 @@ router.get(
 			markup,
 			props: escapeProps(props),
 			script: '/js/entity-editor.js',
-			title: 'Add Work'
+			title: props.heading
 		}));
 	}
 );

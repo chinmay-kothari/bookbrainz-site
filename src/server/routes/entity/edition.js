@@ -22,9 +22,11 @@ import * as entityRoutes from './entity';
 import * as middleware from '../../helpers/middleware';
 import * as utils from '../../helpers/utils';
 
+
 import {
 	ISODateStringToObject,
 	addInitialRelationship,
+	dateObjectToISOString,
 	entityEditorMarkup,
 	generateEntityProps,
 	makeEntityCreateOrEditHandler
@@ -123,22 +125,22 @@ router.get(
 		if (req.query['edition-group']) {
 			propsPromise.editionGroup =
 				EditionGroup.forge({bbid: req.query['edition-group']})
-					.fetch({withRelated: 'defaultAlias'})
-					.then((data) => utils.entityToOption(data.toJSON()));
+					.fetch({require: false, withRelated: 'defaultAlias'})
+					.then((data) => data && utils.entityToOption(data.toJSON()));
 		}
 
 		if (req.query.publisher) {
 			propsPromise.publisher =
 				Publisher.forge({bbid: req.query.publisher})
-					.fetch({withRelated: 'defaultAlias'})
-					.then((data) => utils.entityToOption(data.toJSON()));
+					.fetch({require: false, withRelated: 'defaultAlias'})
+					.then((data) => data && utils.entityToOption(data.toJSON()));
 		}
 
 		if (req.query.work) {
 			propsPromise.work =
 				Work.forge({bbid: req.query.work})
-					.fetch({withRelated: 'defaultAlias'})
-					.then((data) => utils.entityToOption(data.toJSON()));
+					.fetch({require: false, withRelated: 'defaultAlias'})
+					.then((data) => data && utils.entityToOption(data.toJSON()));
 		}
 
 		function render(props) {
@@ -179,7 +181,7 @@ router.get(
 				markup,
 				props: escapeProps(updatedProps),
 				script: '/js/entity-editor.js',
-				title: 'Add Edition'
+				title: props.heading
 			}));
 		}
 
@@ -311,7 +313,7 @@ router.get(
 			markup,
 			props: escapeProps(props),
 			script: '/js/entity-editor.js',
-			title: 'Edit Edition'
+			title: props.heading
 		}));
 	}
 );
@@ -330,8 +332,8 @@ function transformNewForm(data) {
 	);
 
 	let releaseEvents = [];
-	if (data.editionSection.releaseDate) {
-		releaseEvents = [{date: data.editionSection.releaseDate}];
+	if (data.editionSection.releaseDate && data.editionSection.releaseDate.year) {
+		releaseEvents = [{date: dateObjectToISOString(data.editionSection.releaseDate)}];
 	}
 
 	const languages = _.map(

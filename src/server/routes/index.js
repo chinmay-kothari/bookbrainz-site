@@ -79,67 +79,10 @@ router.get('/', async (req, res, next) => {
 		}));
 	}
 
-	const entityModels = utils.getEntityModels(orm);
 
 	try {
-		const queryPromises = [];
-
-		// eslint-disable-next-line guard-for-in
-		for (const modelName in entityModels) {
-			const SQLViewName = _.snakeCase(modelName);
-			queryPromises.push(
-				orm.bookshelf.knex.raw(`
-					SELECT
-						entity.type,
-						entity.bbid,
-						entity.data_id,
-						alias.name AS default_alias_name,
-						revision.id AS revision_id,
-						revision.created_at AS created_at,
-						revision.is_merge AS is_merge
-					FROM bookbrainz.${SQLViewName} AS entity
-					JOIN bookbrainz.revision ON revision.id = entity.revision_id
-					LEFT JOIN bookbrainz.alias ON alias.id = entity.default_alias_id
-					WHERE entity.master = true
-					ORDER BY revision.created_at DESC
-					LIMIT ${numRevisionsOnHomepage};`)
-			);
-		}
-
-		const entitiesCollections = await Promise.all(queryPromises).catch(error => next(error));
-		const latestEntities = entitiesCollections.reduce(
-			(accumulator, value) => accumulator.concat(value.rows.map(entity => {
-				// Massage returned values to fit the format of entities in the ORM
-				// Step 1: Use camelCase instead of snake_case
-				const correctedEntity = _.mapKeys(entity, (val, key) => _.camelCase(key));
-				// Step 2: Restructure aliases
-				correctedEntity.defaultAlias = {name: correctedEntity.defaultAliasName};
-				correctedEntity.defaultAliasName = null;
-				delete correctedEntity.defaultAliasName;
-				return correctedEntity;
-			})),
-			[]
-		);
-
-		/* Take only the number of revisions we want to show on the homepage */
-		const orderedEntities = _.orderBy(
-			latestEntities, 'createdAt',
-			['desc']
-		);
-		const latestEntitiesSubset = _.take(orderedEntities, numRevisionsOnHomepage);
-
-		/* Get merged or deleted entities' last know alias */
-		await Promise.all(latestEntitiesSubset.map(async (entityRevision) => {
-			if (entityRevision.dataId === null) {
-				const parentAlias = await orm.func.entity.getEntityParentAlias(
-					orm, entityRevision.type, entityRevision.bbid
-				);
-				entityRevision.defaultAlias.name = parentAlias.name;
-			}
-			return null;
-		})).catch(err => { log.debug(err); });
-
-		return render(latestEntitiesSubset);
+		const orderedRevisions = await utils.getOrderedRevisions(0, numRevisionsOnHomepage, orm);
+		return render(orderedRevisions);
 	}
 	catch (err) {
 		return next(err);

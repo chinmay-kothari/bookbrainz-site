@@ -118,7 +118,7 @@ router.get(
 			markup,
 			props: escapeProps(props),
 			script: '/js/entity-editor.js',
-			title: 'Add Publisher'
+			title: props.heading
 		}));
 	}
 );
@@ -169,7 +169,6 @@ function publisherToFormState(publisher) {
 		ended: publisher.ended,
 		type: publisher.publisherType && publisher.publisherType.id
 	};
-
 	const relationshipSection = {
 		canEdit: true,
 		lastRelationships: null,
@@ -210,7 +209,7 @@ router.get(
 			markup,
 			props: escapeProps(props),
 			script: '/js/entity-editor.js',
-			title: 'Add Publisher'
+			title: props.heading
 		}));
 	}
 );
@@ -228,7 +227,6 @@ function transformNewForm(data) {
 	const relationships = entityRoutes.constructRelationships(
 		data.relationshipSection
 	);
-
 	return {
 		aliases,
 		areaId: data.publisherSection.area && data.publisherSection.area.id,

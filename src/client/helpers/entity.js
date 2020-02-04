@@ -331,7 +331,7 @@ export function genEntityIconHTMLElement(entityType, size = '1x', margin = true)
 	if (!ENTITY_TYPE_ICONS[correctCaseEntityType]) { return null; }
 	return (
 		<FontAwesomeIcon
-			className={margin ? 'margin-right-0-5' : ''}
+			className={margin ? 'margin-right-0-3' : ''}
 			icon={ENTITY_TYPE_ICONS[correctCaseEntityType]}
 			size={size}
 			title={correctCaseEntityType}

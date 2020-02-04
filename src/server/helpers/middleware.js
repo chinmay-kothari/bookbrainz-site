@@ -97,7 +97,7 @@ export function loadEntityRelationships(req, res, next) {
 				const model = utils.getEntityModelByType(orm, relEntity.type);
 
 				return model.forge({bbid: relEntity.bbid})
-					.fetch({withRelated: ['defaultAlias'].concat(utils.getAdditionalRelations(relEntity.type))});
+					.fetch({require: false, withRelated: ['defaultAlias'].concat(utils.getAdditionalRelations(relEntity.type))});
 			}
 
 			/**
@@ -120,11 +120,6 @@ export function loadEntityRelationships(req, res, next) {
 			);
 		})
 		.then((relationships) => {
-			// Set rendered relationships on relationship objects
-			relationships.forEach((relationship) => {
-				relationship.rendered = renderRelationship(relationship);
-			});
-
 			next();
 			return null;
 		})

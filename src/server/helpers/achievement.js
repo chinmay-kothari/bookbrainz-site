@@ -37,18 +37,14 @@ function awardUnlock(UnlockType, awardAttribs) {
 	return new UnlockType(awardAttribs)
 		.fetch({require: false})
 		.then((award) => {
-			let unlockPromise;
-			if (award === null) {
-				unlockPromise = new UnlockType(awardAttribs)
+			if (award === null || typeof award === 'undefined') {
+				return new UnlockType(awardAttribs)
 					.save(null, {method: 'insert'})
 					.then((unlock) => unlock.toJSON());
 			}
-			else {
-				unlockPromise = Promise.resolve('already unlocked');
-			}
-			return unlockPromise;
+			return Promise.resolve('Already unlocked');
 		})
-		.catch((err) => Promise.reject(err));
+		.catch(err => Promise.reject(err));
 }
 
 /**
@@ -235,7 +231,7 @@ function getTypeCreation(revisionType, revisionString, editor) {
 				`bookbrainz.${revisionString}.id`);
 			qb.whereNull('bookbrainz.revision_parent.parent_id');
 		})
-		.fetchAll()
+		.fetchAll({require: false})
 		.then((out) => out.length);
 }
 
