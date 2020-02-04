@@ -65,7 +65,7 @@ router.get('/', async (req, res, next) => {
 			markup,
 			props: escapeProps(props),
 			script: '/js/revisions.js',
-			title: 'RevisionsPage'
+			title: 'Recent changes'
 		}));
 	}
 

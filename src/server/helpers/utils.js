@@ -81,14 +81,12 @@ async function getAssociatedEntityRevisions(revisions, orm) {
 				qb.whereIn('id', revisionIDs);
 			})
 			.fetchAll({
+				merge: false,
+				remove: false,
 				require: false,
 				withRelated: [
 					'data.aliasSet.defaultAlias'
 				]
-			})
-			.catch(EntityRevision.NotFoundError, (err) => {
-				// eslint-disable-next-line no-console
-				console.log(err);
 			});
 		if (entityRevisions && entityRevisions.length) {
 			const entityRevisionsJSON = entityRevisions.toJSON();

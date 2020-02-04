@@ -241,21 +241,14 @@ export function showEntityEditions(entity) {
 }
 
 export function getEntityLabel(entity) {
-	// Deleted entities
-	if (!entity.dataId) {
-		let deletedEntityName = `Deleted ${entity.type} ${entity.bbid}`;
-		if (entity.defaultAlias) {
-			deletedEntityName = entity.defaultAlias.name;
-		}
-		return <span className="text-muted deleted" title={`Deleted ${entity.type}`}>{deletedEntityName}</span>;
+	if (entity.defaultAlias) {
+		return `${entity.defaultAlias.name} `;
 	}
 
-	if (entity.defaultAlias) {
-		return (
-			<span title={`${entity.type} ${entity.defaultAlias.name}`}>
-				{entity.defaultAlias.name}
-			</span>
-		);
+	// Deleted entities
+	if (!entity.dataId) {
+		const deletedEntityName = _get(entity, 'parentAlias.name', `Deleted ${entity.type} ${entity.bbid}`);
+		return <span className="text-muted deleted" title={`Deleted ${entity.type}`}>{deletedEntityName}</span>;
 	}
 
 	return <span title={`Unnamed ${entity.type} ${entity.bbid}`}>(unnamed)</span>;
