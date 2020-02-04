@@ -430,7 +430,14 @@ function processEntitySets(
 	return Promise.resolve(null);
 }
 
-
+/**
+ * Compare an entity's alias set with the new edit and returns a new set if there are changes
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} currentEntity - The current entity ORM model
+ * @param {object} body - The request body, sent from the entity-editor page
+ * @returns {Promise} A promise resolving to the aliasSet (new or old)
+ */
 async function getNextAliasSet(orm, transacting, currentEntity, body) {
 	const {AliasSet} = orm;
 
@@ -448,6 +455,14 @@ async function getNextAliasSet(orm, transacting, currentEntity, body) {
 	);
 }
 
+/**
+ * Compare an entity's identifier set with the new edit and returns a new set if there are changes
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} currentEntity - The current entity ORM model
+ * @param {object} body - The request body, sent from the entity-editor page
+ * @returns {Promise} A promise resolving to the identifierSet (new or old)
+ */
 async function getNextIdentifierSet(orm, transacting, currentEntity, body) {
 	const {IdentifierSet} = orm;
 
@@ -466,6 +481,14 @@ async function getNextIdentifierSet(orm, transacting, currentEntity, body) {
 	);
 }
 
+/**
+ * Compare an entity's relationship set with the new edit and returns new sets for each change
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} currentEntity - The current entity ORM model
+ * @param {object} body - The request body, sent from the entity-editor page
+ * @returns {Promise} A promise resolving to an object {bbid: IdentifierSet} with each modified set model
+ */
 async function getNextRelationshipSets(
 	orm, transacting, currentEntity, body
 ) {
@@ -488,6 +511,15 @@ async function getNextRelationshipSets(
 	return updatedRelationships;
 }
 
+/**
+ * Compare an entity's annotation with the new edit and returns a new Annotation if needed
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} currentEntity - The current entity ORM model
+ * @param {object} body - The request body, sent from the entity-editor page
+ * @param {object} revision - The new Revision ORM model
+ * @returns {Promise|null} A promise resolving to a new Annotation ORM model or null
+ */
 async function getNextAnnotation(
 	orm, transacting, currentEntity, body, revision
 ) {
@@ -504,6 +536,14 @@ async function getNextAnnotation(
 	) : Promise.resolve(null);
 }
 
+/**
+ * Compare an entity's disambiguation with the new edit and returns a new Disambiguation if needed
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} currentEntity - The current entity ORM model
+ * @param {object} body - The request body, sent from the entity-editor page
+ * @returns {Promise|null} A promise resolving to a new Disambiguation ORM model or null
+ */
 async function getNextDisambiguation(orm, transacting, currentEntity, body) {
 	const {Disambiguation} = orm;
 
@@ -572,6 +612,16 @@ async function getChangedProps(
 	}, {});
 }
 
+/**
+ * Fetches (or creates if nonexistant) the main entity being edited in this revision
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {boolean} isNew - Does the entity in question already exist, or are we creating it?
+ * @param {string} bbid - The entity's BBID
+ * @param {string} entityType - The entity's type
+ * @returns {Promise} A promise resolving to the entity
+ * @throws model.NotFoundError if isNew is false and there is no result fetched
+ */
 function fetchOrCreateMainEntity(
 	orm, transacting, isNew, bbid, entityType
 ) {
@@ -586,6 +636,14 @@ function fetchOrCreateMainEntity(
 	return entity.fetch({transacting});
 }
 
+/**
+ * Fetch an entity by its BBID
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {string} bbid - The entity's BBID
+ * @returns {Promise} A promise resolving to the entity
+ * @throws model.NotFoundError if there is no result fetched
+ */
 async function getEntityByBBID(orm, transacting, bbid) {
 	const entityHeader = await orm.Entity.forge({bbid}).fetch({transacting});
 
@@ -593,6 +651,14 @@ async function getEntityByBBID(orm, transacting, bbid) {
 	return model.forge({bbid}).fetch({transacting});
 }
 
+/**
+ * Fetch all entities with a relationship to currentEntity
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} currentEntity - The current entity ORM model
+ * @param {object} relationshipSets - Relationship sets affected by this revision
+ * @returns {Promise} A promise resolving to the newRevision's parents Collection
+ */
 function fetchEntitiesForRelationships(
 	orm, transacting, currentEntity, relationshipSets
 ) {
@@ -606,6 +672,13 @@ function fetchEntitiesForRelationships(
 	));
 }
 
+/**
+ * Create a link between the newly created revision and the previous revisions (multiple revisions in case of merge)
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} newRevision - The new Revision ORM model
+ * @param {array} parentRevisionIDs - Array of BBIDs of parent entities
+ * @returns {Promise} A promise resolving to the newRevision's parents Collection
+ */
 async function setParentRevisions(transacting, newRevision, parentRevisionIDs) {
 	if (_.isEmpty(parentRevisionIDs)) {
 		return Promise.resolve(null);
@@ -619,6 +692,18 @@ async function setParentRevisions(transacting, newRevision, parentRevisionIDs) {
 	return parents.attach(parentRevisionIDs, {transacting});
 }
 
+/**
+ * This helper takes care of doing all the manipulations needed to merge two or more entities.
+ * It will take care of cleaning up any links/relationships with the entities being merged.
+ * It will also redirect bbids accordingly, and modify the revision/entityRevisions that are created by a Postgres trigger
+ * @param {object} orm - The BookshelfJS ORM
+ * @param {object} transacting - The knexjs/bookshelfjs database transaction object
+ * @param {object} session - User session containing the merge queue
+ * @param {object} mainEntity - The merge target entity
+ * @param {object} allEntities - Other related entities to be modified by revision
+ * @param {object} relationshipSets - Updated relationship sets for mainEntity and related entities
+ * @returns {array} allEntitiesReturnArray - An array of modified entities
+ */
 async function processMergeOperation(orm, transacting, session, mainEntity, allEntities, relationshipSets) {
 	const {Edition, bookshelf} = orm;
 	const {mergingEntities} = session.mergeQueue;
