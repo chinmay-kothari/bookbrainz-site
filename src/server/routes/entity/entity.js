@@ -929,14 +929,15 @@ async function saveEntitiesAndFinishRevision(
 	const parentsAddedPromise =
 		setParentRevisions(transacting, newRevision, _.uniq(parentRevisionIDs));
 
-	await Promise.all([
+	/** model.save returns a refreshed model */
+	const [savedEntities, ...others] = await Promise.all([
 		entitiesSavedPromise,
 		editorUpdatePromise,
 		parentsAddedPromise,
 		notePromise
 	]).catch(err => { throw err; });
 
-	return mainEntity;
+	return savedEntities.find(entityModel => entityModel.get('bbid') === mainEntity.get('bbid')) || mainEntity;
 }
 
 export function handleCreateOrEditEntity(
@@ -1042,13 +1043,11 @@ export function handleCreateOrEditEntity(
 				editorJSON.id, body.note
 			);
 
-			const refreshedEntity = await savedMainEntity.refresh({
-				require: false,
-				transacting,
-				withRelated: ['defaultAlias', 'aliasSet.aliases']
-			});
+			/** savedMainEntity is already updated, but without relations (we need the aliases for search reindexing) */
+			const savedEntityWithRelationships = await savedMainEntity.load(['aliasSet.aliases'],
+				{transacting});
 
-			return refreshedEntity.toJSON();
+			return savedEntityWithRelationships.toJSON();
 		}
 		catch (err) {
 			log.error(err);
