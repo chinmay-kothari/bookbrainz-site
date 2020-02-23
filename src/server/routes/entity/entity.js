@@ -36,7 +36,6 @@ import type {
 	Transaction
 } from 'bookbrainz-data/lib/func/types';
 import {escapeProps, generateProps} from '../../helpers/props';
-
 import AuthorPage from '../../../client/components/pages/entities/author';
 import DeletionForm from '../../../client/components/forms/deletion';
 import EditionGroupPage from
@@ -52,6 +51,7 @@ import ReactDOMServer from 'react-dom/server';
 import WorkPage from '../../../client/components/pages/entities/work';
 import _ from 'lodash';
 import config from '../../../common/helpers/config';
+import {getEntityLabel} from '../../../client/helpers/entity';
 import target from '../../templates/target';
 
 
@@ -150,6 +150,7 @@ export function displayEntity(req: PassportRequest, res: $Response) {
 				alert,
 				identifierTypes
 			});
+
 			const markup = ReactDOMServer.renderToString(
 				<Layout {...propHelpers.extractLayoutProps(props)}>
 					<EntityComponent
@@ -161,7 +162,8 @@ export function displayEntity(req: PassportRequest, res: $Response) {
 				markup,
 				page: entityName,
 				props: escapeProps(props),
-				script: '/js/entity/entity.js'
+				script: '/js/entity/entity.js',
+				title: `${getEntityLabel(props.entity)}: ${_.upperFirst(entityName)}`
 			}));
 		}
 		else {

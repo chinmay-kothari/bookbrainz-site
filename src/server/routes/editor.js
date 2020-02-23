@@ -245,7 +245,8 @@ router.get('/:id', (req, res, next) => {
 				markup,
 				page: 'profile',
 				props: escapeProps(props),
-				script: '/js/editor/editor.js'
+				script: '/js/editor/editor.js',
+				title: `Profile: ${props.editor.name}`
 			}));
 		}
 	);
@@ -319,7 +320,8 @@ router.get('/:id/revisions', async (req, res, next) => {
 			markup,
 			page: 'revisions',
 			props: escapeProps(props),
-			script: '/js/editor/editor.js'
+			script: '/js/editor/editor.js',
+			title: `Revisions: ${props.editor.name}`
 		}));
 	}
 	catch (err) {
@@ -407,7 +409,8 @@ router.get('/:id/achievements', (req, res, next) => {
 			res.send(target({
 				markup,
 				props: escapeProps(props),
-				script
+				script,
+				title: `Achievements: ${props.editor.name}`
 			}));
 		}
 	);
