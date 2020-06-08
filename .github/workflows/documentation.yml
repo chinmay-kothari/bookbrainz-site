@@ -20,7 +20,7 @@ jobs:
           output_dir: ./out
           config_file: conf.json
           template_name: minami
-          front_page: README.md
+          front_page:  README.md
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
