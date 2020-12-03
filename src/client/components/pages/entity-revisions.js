@@ -43,7 +43,7 @@ class EntityRevisions extends React.Component {
 		// React does not autobind non-React class methods
 		this.renderHeader = this.renderHeader.bind(this);
 		this.searchResultsCallback = this.searchResultsCallback.bind(this);
-		this.paginationUrl = './revisions/revisions?';
+		this.paginationUrl = './revisions/revisions';
 	}
 
 	searchResultsCallback(newResults) {
@@ -104,7 +104,8 @@ EntityRevisions.displayName = 'EntityRevisions';
 EntityRevisions.propTypes = {
 	entity: PropTypes.shape({
 		defaultAlias: PropTypes.object,
-		disambiguation: PropTypes.object
+		disambiguation: PropTypes.object,
+		type: PropTypes.string
 	}).isRequired,
 	from: PropTypes.number,
 	nextEnabled: PropTypes.bool.isRequired,

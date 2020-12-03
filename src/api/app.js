@@ -20,13 +20,11 @@
  */
 /* eslint global-require: 'warn' */
 
-
+import * as search from '../common/helpers/search';
 import BookBrainzData from 'bookbrainz-data';
 import Debug from 'debug';
-import Promise from 'bluebird';
 import {get as _get} from 'lodash';
 import appCleanup from '../common/helpers/appCleanup';
-import bodyParser from 'body-parser';
 import compression from 'compression';
 import config from '../common/helpers/config';
 import express from 'express';
@@ -35,11 +33,6 @@ import logger from 'morgan';
 import redis from 'connect-redis';
 import session from 'express-session';
 
-
-Promise.config({
-	longStackTraces: true,
-	warnings: true
-});
 
 // Initialize application
 const app = express();
@@ -52,10 +45,8 @@ if (app.get('env') !== 'testing') {
 	app.use(logger('dev'));
 }
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-	extended: false
-}));
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 app.use(compression());
 
 
@@ -87,6 +78,12 @@ app.use('/*', (req, res) => {
 mainRouter.use((req, res) => {
 	res.status(404).send({message: `Incorrect endpoint ${req.path}`});
 });
+
+// initialize elasticsearch
+// Clone object to prevent error if starting webserver and api
+// https://github.com/elastic/elasticsearch-js/issues/33
+search.init(app.locals.orm, Object.assign({}, config.search));
+
 
 const debug = Debug('bbapi');
 

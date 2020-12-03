@@ -19,6 +19,7 @@
 import * as bootstrap from 'react-bootstrap';
 import * as entityHelper from '../../../helpers/entity';
 
+import EntityAnnotation from './annotation';
 import EntityFooter from './footer';
 import EntityImage from './image';
 import EntityLinks from './links';
@@ -104,7 +105,7 @@ AuthorAttributes.propTypes = {
 };
 
 
-function AuthorDisplayPage({entity, identifierTypes}) {
+function AuthorDisplayPage({entity, identifierTypes, user}) {
 	const urlPrefix = getEntityUrl(entity);
 	return (
 		<div>
@@ -121,6 +122,7 @@ function AuthorDisplayPage({entity, identifierTypes}) {
 					<AuthorAttributes author={entity}/>
 				</Col>
 			</Row>
+			<EntityAnnotation entity={entity}/>
 			{!entity.deleted &&
 			<React.Fragment>
 				<EntityLinks
@@ -140,8 +142,10 @@ function AuthorDisplayPage({entity, identifierTypes}) {
 			<EntityFooter
 				bbid={entity.bbid}
 				deleted={entity.deleted}
+				entityType={entity.type}
 				entityUrl={urlPrefix}
 				lastModified={entity.revision.revision.createdAt}
+				user={user}
 			/>
 		</div>
 	);
@@ -149,7 +153,9 @@ function AuthorDisplayPage({entity, identifierTypes}) {
 AuthorDisplayPage.displayName = 'AuthorDisplayPage';
 AuthorDisplayPage.propTypes = {
 	entity: PropTypes.object.isRequired,
-	identifierTypes: PropTypes.array
+	identifierTypes: PropTypes.array,
+	user: PropTypes.object.isRequired
+
 };
 AuthorDisplayPage.defaultProps = {
 	identifierTypes: []

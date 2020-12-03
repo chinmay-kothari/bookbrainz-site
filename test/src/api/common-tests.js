@@ -91,12 +91,12 @@ describe('Lookup endpoints', () => {
 		expect(res.body.aliases).to.be.an('array');
 		expect(res.body.aliases[0]).to.be.an('object');
 		expect(res.body.aliases[0]).to.have.all.keys(
-			'aliasLanguage',
+			'language',
 			'name',
 			'sortName',
 			'primary'
 		);
-		expect(res.body.aliases[0].aliasLanguage).to.be.a('string');
+		expect(res.body.aliases[0].language).to.be.a('string');
 		expect(res.body.aliases[0].name).to.be.a('string');
 		expect(res.body.aliases[0].sortName).to.be.a('string');
 		expect(res.body.aliases[0].primary).to.be.a('boolean');
@@ -108,7 +108,7 @@ describe('Lookup endpoints', () => {
 		expect(res.body.identifiers[0]).to.be.an('object');
 		expect(res.body.identifiers[0]).to.have.all.keys(
 			'type',
-			'value',
+			'value'
 		);
 		expect(res.body.identifiers[0].type).to.be.a('string');
 		expect(res.body.identifiers[0].value).to.be.a('string');

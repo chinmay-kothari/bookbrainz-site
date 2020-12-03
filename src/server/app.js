@@ -21,20 +21,19 @@
 
 import * as auth from './helpers/auth';
 import * as error from '../common/helpers/error';
-import * as search from './helpers/search';
+import * as search from '../common/helpers/search';
 import * as serverErrorHelper from './helpers/error';
 import BookBrainzData from 'bookbrainz-data';
 import Debug from 'debug';
-import Promise from 'bluebird';
 import {get as _get} from 'lodash';
 import appCleanup from '../common/helpers/appCleanup';
-import bodyParser from 'body-parser';
 import compression from 'compression';
 import config from '../common/helpers/config';
 import express from 'express';
 import favicon from 'serve-favicon';
 import git from 'git-rev';
 import initInflux from './influx';
+import logNode from 'log-node';
 import logger from 'morgan';
 import path from 'path';
 import redis from 'connect-redis';
@@ -44,13 +43,8 @@ import session from 'express-session';
 
 
 // Initialize log-to-stdout  writer
-require('log-node')();
+logNode();
 
-
-Promise.config({
-	longStackTraces: true,
-	warnings: true
-});
 
 // Initialize application
 const app = express();
@@ -66,20 +60,22 @@ if (app.get('env') !== 'testing') {
 	app.use(logger('dev'));
 }
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
+app.use(express.json({limit: '10mb'}));
+app.use(express.urlencoded({
 	extended: false
 }));
 app.use(compression());
 
 // Set up serving of static assets
 if (process.env.NODE_ENV === 'development') {
+	/* eslint-disable node/global-require, node/no-unpublished-require, @typescript-eslint/no-var-requires */
 	const webpack = require('webpack');
 	const webpackDevMiddleware = require('webpack-dev-middleware');
 	const webpackHotMiddleware = require('webpack-hot-middleware');
 
 	// eslint-disable-next-line import/no-dynamic-require
 	const webpackConfig = require(path.resolve(rootDir, './webpack.client'));
+	/* eslint-enable node/global-require, node/no-unpublished-require, @typescript-eslint/no-var-requires */
 	const compiler = webpack(webpackConfig);
 
 	app.use(webpackDevMiddleware(compiler, {
@@ -123,7 +119,10 @@ if (config.influx) {
 
 // Authentication code depends on session, so init session first
 const authInitiated = auth.init(app);
-search.init(app.locals.orm, config.search);
+
+// Clone search config to prevent error if starting webserver and api
+// https://github.com/elastic/elasticsearch-js/issues/33
+search.init(app.locals.orm, Object.assign({}, config.search));
 
 // Set up constants that will remain valid for the life of the app
 let siteRevision = 'unknown';
